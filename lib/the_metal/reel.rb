@@ -16,7 +16,11 @@ module TheMetal
     def listen port, address
       @serv = ::Reel::Server::HTTP.new(address, port) do |connection|
         req = connection.request
-        res = TheMetal::Response.new(200, {}, connection.hijack_socket)
+        res = if req.websocket?
+                TheMetal::Response.new(101, {}, req.websocket)
+              else
+                TheMetal::Response.new(200, {}, connection.hijack_socket)
+              end
         @app.call req, res
       end
       sleep
